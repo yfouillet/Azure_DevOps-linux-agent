@@ -7,10 +7,6 @@ if [ -z "$VSTS_ACCOUNT" ]; then
   exit 1
 fi
 
- # if [ -z "$VSTS_TOKEN" ]; then
- #   echo 1>&2 error: missing VSTS_TOKEN environment variable
- #   exit 1
-#  fi
 
 if [ -z "$VSTS_TOKEN_FILE" ]; then
   if [ -z "$VSTS_TOKEN" ]; then

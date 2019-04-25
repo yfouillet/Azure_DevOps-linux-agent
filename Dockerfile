@@ -1,8 +1,19 @@
 FROM centos:7
 
-#docker run -it  -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat>  azure-devops-agent 
-#ENV GIT_VERSION "v2.21.0"
+#docker run -it  -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat>  yfouillet/azure_devops-linux-agent
+ENV GIT_VERSION "v2.21.0"
+ENV HELM_VERSION "v2.13.1"
+ENV AGENT_VERSION "2.150.0"
+ENV PYTHON_VERSION "2.7.5-77.el7_6"
+ENV DOCKER_VERSION "3:18.09.5-3.el7"
+ENV KUBECTL_VERSION "1.14.1-0"
+ENV AZURE-CLI_VERSION "2.0.63-1.el7"
+ENV GCLOUD-SDK_VERSION "243.0.0-1.el7"
+
+RUN yum install sudo -y
 RUN useradd -u 10000 agent-user
+RUN sed --in-place 's/^#\s*\(%wheel\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL\)/\1/' /etc/sudoers
+RUN usermod -aG wheel agent-user
 
 
 #RUN yum update -y
@@ -15,13 +26,10 @@ RUN yum install -y wget
 
 # Install git
 RUN mkdir /tmp/git
-RUN wget https://github.com/git/git/archive/v2.21.0.tar.gz -O /tmp/git.tar.gz
+RUN wget https://github.com/git/git/archive/${GIT_VERSION}.tar.gz -O /tmp/git.tar.gz
 RUN tar -xvf /tmp/git.tar.gz -C /tmp/git/ --strip-components=1
 RUN cd /tmp/git/ && make prefix=/usr/local/git all
 RUN cd /tmp/git/ && make prefix=/usr/local/git install
-
-# priority path for git
-RUN ln -s /usr/local/sbin/git /usr/local/git
 
 # Docker install
 
@@ -36,10 +44,11 @@ RUN yum remove docker \
 RUN yum install -y yum-utils device-mapper-persistent-data lvm2 -y
 RUN yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo -y
 RUN yum install docker-ce docker-ce-cli containerd.io -y
+RUN systemctl enable docker
 
 # install Helm
 
-RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz -O /tmp/helm.tar.gz
+RUN wget https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -O /tmp/helm.tar.gz
 RUN tar -zxvf /tmp/helm.tar.gz linux-amd64/helm -C /usr/local/bin/ --strip-components=1
 
 # install kubectl
@@ -57,7 +66,7 @@ RUN yum install azure-cli -y
 
 # install Google cloud cli
 
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-243.0.0-linux-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
+#RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-243.0.0-linux-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
 RUN sh -c 'echo -e "[google-cloud-sdk]\nname=Google Cloud SDK\nbaseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg" > /etc/yum.repos.d/gcloud-cli.repo'
 RUN yum install google-cloud-sdk -y
 
@@ -70,23 +79,25 @@ RUN yum install aspnetcore-runtime-2.1 -y
 
 RUN mkdir -p /vsts-agent-linux/_work
 COPY start.sh /vsts-agent-linux/
-RUN wget https://vstsagentpackage.azureedge.net/agent/2.150.0/vsts-agent-linux-x64-2.150.0.tar.gz -O /tmp/vsts-agent-linux.tar.gz
-RUN tar -zxvf /tmp/vsts-agent-linux.tar.gz -C /vsts-agent-linux/ --strip-components=1
 RUN chown -R agent-user /vsts-agent-linux 
 RUN chmod +x /vsts-agent-linux/start.sh
-
+USER agent-user
+RUN wget https://vstsagentpackage.azureedge.net/agent/2.150.0/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz -O /tmp/vsts-agent-linux.tar.gz
+RUN tar -zxvf /tmp/vsts-agent-linux.tar.gz -C /vsts-agent-linux/ --strip-components=1
+USER root
 # Clean system
 
 RUN yum groupremove "Development Tools" -y
 RUN yum remove autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
 RUN yum remove git -y
+# priority path for git
+RUN ln -s /usr/local/git/bin/git /usr/bin/git
 
 RUN yum autoremove -y
 RUN yum clean all
 RUN rm -rf /tmp/*
+RUN rm -rf /var/cache/yum
+USER agent-user
 
-User agent-user
-
-Workdir ["/vsts-agent-linux"]
+WORKDIR "/vsts-agent-linux/"
 CMD ["/bin/sh", "/vsts-agent-linux/start.sh"]
-#ENTRYPOINT ["sh -C", "/vsts-agent-linux/start.sh"]
