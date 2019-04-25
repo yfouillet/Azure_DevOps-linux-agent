@@ -1,8 +1,9 @@
 FROM centos:7
 
-
+#docker run -it  -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat>  azure-devops-agent 
 #ENV GIT_VERSION "v2.21.0"
 RUN useradd -u 10000 agent-user
+
 
 #RUN yum update -y
 RUN yum install python -y
@@ -60,11 +61,19 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
 RUN sh -c 'echo -e "[google-cloud-sdk]\nname=Google Cloud SDK\nbaseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg" > /etc/yum.repos.d/gcloud-cli.repo'
 RUN yum install google-cloud-sdk -y
 
+# install Dotnet core 2.1
+# Official link https://dotnet.microsoft.com/download/linux-package-manager/centos/runtime-2.1.0
+RUN rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm
+RUN yum install aspnetcore-runtime-2.1 -y
+
 # install AzureDevops Agent
 
-RUN mkdir /vsts-agent-linux
+RUN mkdir -p /vsts-agent-linux/_work
+COPY start.sh /vsts-agent-linux/
 RUN wget https://vstsagentpackage.azureedge.net/agent/2.150.0/vsts-agent-linux-x64-2.150.0.tar.gz -O /tmp/vsts-agent-linux.tar.gz
 RUN tar -zxvf /tmp/vsts-agent-linux.tar.gz -C /vsts-agent-linux/ --strip-components=1
+RUN chown -R agent-user /vsts-agent-linux 
+RUN chmod +x /vsts-agent-linux/start.sh
 
 # Clean system
 
@@ -77,5 +86,7 @@ RUN yum clean all
 RUN rm -rf /tmp/*
 
 User agent-user
-Workdir ["/app"]
-ENTRYPOINT ["/bin/sh"]
+
+Workdir ["/vsts-agent-linux"]
+CMD ["/bin/sh", "/vsts-agent-linux/start.sh"]
+#ENTRYPOINT ["sh -C", "/vsts-agent-linux/start.sh"]
