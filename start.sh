@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# turn on bash's job control
+set -m
+
+
+
+
 
 if [ -z "$VSTS_ACCOUNT" ]; then
   echo 1>&2 error: missing VSTS_ACCOUNT environment variable
@@ -23,6 +29,8 @@ if [ -n "$VSTS_AGENT" ]; then
   export VSTS_AGENT="$(eval echo $VSTS_AGENT)"
 fi
 
+
+
 /vsts-agent-linux/bin/Agent.Listener configure --unattended \
   --agent "docker-$(cat "/etc/hostname")" \
   --url "https://dev.azure.com/$VSTS_ACCOUNT/" \
@@ -32,4 +40,10 @@ fi
   --work "/vsts-agent-linux/_work" \
   --replace 
 
+
+
+# Start the primary process and put it in the background
+/usr/bin/dockerd-ce &
+
+# Start the helper process
 /vsts-agent-linux/bin/Agent.Listener run
