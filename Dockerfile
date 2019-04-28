@@ -2,10 +2,9 @@ FROM centos/systemd
 
 #docker run -it --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat>  yfouillet/azure_devops-linux-agent
 #docker build . -t yfouillet/azure_devops-linux-agent:1.0.0
-# "yum --showduplicates list <package>"" for check versions available for package
+# "yum --showduplicates list <package> for check versions available for package
 
-ENV GIT_MAJOR_VERSION "29"
-ENV GIT_VERSION "2.9.3-8.el7"
+ENV GIT_VERSION "v2.21.0"
 ENV HELM_VERSION "v2.13.1"
 ENV AGENT_VERSION "2.150.0"
 ENV PYTHON_VERSION "2.7.5-77.el7_6"
@@ -15,6 +14,9 @@ ENV AZURECLI_VERSION "2.0.63-1.el7"
 ENV GCP_SDK_VERSION "243.0.0-1.el7"
 ENV ASPNETCORE_RUNTIME_2_1_VERSION "2.1.10-1"
 
+RUN yum groupinstall "Development Tools" -y
+#RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
+RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel -y
 RUN yum install sudo -y
 RUN useradd -u 10000 agent-user
 RUN sed --in-place 's/^#\s*\(%wheel\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL\)/\1/' /etc/sudoers
@@ -27,8 +29,14 @@ RUN yum install -y wget
 
 # Install git
 
-RUN yum install centos-release-scl-rh -y
-RUN yum install rh-git${GIT_MAJOR_VERSION}-git-${GIT_VERSION} -y
+RUN mkdir /tmp/git
+RUN wget https://github.com/git/git/archive/${GIT_VERSION}.tar.gz -O /tmp/git.tar.gz
+RUN tar -xvf /tmp/git.tar.gz -C /tmp/git/ --strip-components=1
+RUN cd /tmp/git/ && make prefix=/usr/local/git all
+RUN cd /tmp/git/ && make prefix=/usr/local/git install
+
+#RUN yum install centos-release-scl-rh -y
+#RUN yum install rh-git${GIT_MAJOR_VERSION}-${GIT_VERSION} -y
 
 # Docker install
 
@@ -92,12 +100,20 @@ USER root
 
 RUN yum remove git -y
 # priority path for git
-RUN ln -s /opt/rh/rh-git29/root/usr/bin/git /usr/bin/git
+#RUN ln -s /opt/rh/rh-git218/root/usr/libexec/git-core/git /usr/bin/git
+RUN ln -s /usr/local/git/bin/git /usr/bin/git
+
+RUN yum groupremove "Development Tools" -y
+RUN yum remove autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
+RUN yum remove git -y
 
 RUN yum autoremove -y
 RUN yum clean all
 RUN rm -rf /tmp/*
 RUN rm -rf /var/cache/yum
+
+
+
 USER agent-user
 
 WORKDIR "/vsts-agent-linux/"
