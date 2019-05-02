@@ -87,7 +87,6 @@ RUN mkdir -p /vsts-agent-linux/_work
 COPY start.sh /vsts-agent-linux/
 
 RUN chown -R agent-user:agent-user /vsts-agent-linux/
-COPY dockerd.sh /vsts-agent-linux/
 RUN chmod +x /vsts-agent-linux/start.sh
 RUN chmod 755 /vsts-agent-linux/dockerd.sh
 RUN chmod u+s /usr/bin/dockerd-ce
