@@ -4,10 +4,6 @@ set -e
 # turn on bash's job control
 set -m
 
-
-
-
-
 if [ -z "$VSTS_ACCOUNT" ]; then
   echo 1>&2 error: missing VSTS_ACCOUNT environment variable
   exit 1
@@ -25,14 +21,15 @@ fi
 unset VSTS_TOKEN
 
 
-if [ -n "$VSTS_AGENT" ]; then
-  export VSTS_AGENT="$(eval echo $VSTS_AGENT)"
+if [ -n "$VSTS_AGENT_NAME" ]
+then
+  export VSTS_AGENT=$VSTS_AGENT_NAME
+else
+  export VSTS_AGENT="docker-$(cat "/etc/hostname")"
 fi
 
-
-
 /vsts-agent-linux/bin/Agent.Listener configure --unattended \
-  --agent "docker-$(cat "/etc/hostname")" \
+  --agent "$VSTS_AGENT" \
   --url "https://dev.azure.com/$VSTS_ACCOUNT/" \
   --auth PAT \
   --token "$(cat "$VSTS_TOKEN_FILE")" \

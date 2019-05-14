@@ -1,6 +1,8 @@
 FROM centos/systemd
 
-#docker run -it --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat>  yfouillet/azure_devops-linux-agent
+#docker run -it --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e VSTS_ACCOUNT=<name> -e VSTS_TOKEN=<pat> -e VSTS_AGENT_NAME=<name>  yfouillet/azure_devops-linux-agent
+# VSTS_AGENT_NAME=<name> is optional, the hostname will be used if the option is not used
+
 #docker build . -t yfouillet/azure_devops-linux-agent:1.0.0
 # "yum --showduplicates list <package> for check versions available for package
 
@@ -88,7 +90,7 @@ COPY start.sh /vsts-agent-linux/
 
 RUN chown -R agent-user:agent-user /vsts-agent-linux/
 RUN chmod +x /vsts-agent-linux/start.sh
-RUN chmod 755 /vsts-agent-linux/dockerd.sh
+#RUN chmod 755 /vsts-agent-linux/dockerd.sh
 RUN chmod u+s /usr/bin/dockerd-ce
 
 USER agent-user
