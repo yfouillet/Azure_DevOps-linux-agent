@@ -59,7 +59,7 @@ RUN usermod -aG docker agent-user
 # install Helm
 
 RUN wget https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -O /tmp/helm.tar.gz
-RUN tar -zxvf /tmp/helm.tar.gz linux-amd64/helm -C /usr/local/bin/ --strip-components=1
+RUN tar -zxvf /tmp/helm.tar.gz linux-amd64/helm -C /usr/local/bin/helm --strip-components=1
 
 # install kubectl
 # OFFICIAL LINK https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
