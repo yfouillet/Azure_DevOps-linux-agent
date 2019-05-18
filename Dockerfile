@@ -19,7 +19,7 @@ ENV ASPNETCORE_RUNTIME_2_1_VERSION "2.1.10-1"
 RUN yum groupinstall "Development Tools" -y
 #RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
 RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel -y
-RUN yum install sudo -y
+RUN yum install sudo openssh-clients -y
 RUN useradd -u 10000 agent-user
 RUN sed --in-place 's/^#\s*\(%wheel\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL\)/\1/' /etc/sudoers
 RUN usermod -aG wheel agent-user
