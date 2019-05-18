@@ -116,14 +116,12 @@ RUN yum remove git -y
 
 
 RUN yum autoremove -y
+RUN yum install openssh-clients -y
 RUN yum clean all
 RUN rm -rf /tmp/*
 RUN rm -rf /var/cache/yum
 
-
-
 USER agent-user
-RUN yum install openssh-clients -y
 
 WORKDIR "/vsts-agent-linux/"
 CMD ["/bin/sh", "/vsts-agent-linux/start.sh"]
