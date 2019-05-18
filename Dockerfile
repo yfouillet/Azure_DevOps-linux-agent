@@ -20,7 +20,7 @@ RUN yum groupinstall "Development Tools" -y
 #RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
 RUN yum install autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel -y
 RUN yum install sudo -y
-RUN yum install openssh-clients -y
+
 RUN useradd -u 10000 agent-user
 RUN sed --in-place 's/^#\s*\(%wheel\s\+ALL=(ALL)\s\+NOPASSWD:\s\+ALL\)/\1/' /etc/sudoers
 RUN usermod -aG wheel agent-user
@@ -112,6 +112,8 @@ RUN ln -s /usr/local/git/bin/git /usr/bin/git
 RUN yum groupremove "Development Tools" -y
 RUN yum remove autoconf libcurl-devel expat-devel gcc gettext-devel kernel-headers openssl-devel perl-devel zlib-devel -y
 RUN yum remove git -y
+
+RUN yum install openssh-clients -y
 
 RUN yum autoremove -y
 RUN yum clean all
