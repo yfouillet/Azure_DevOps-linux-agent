@@ -40,6 +40,14 @@ RUN cd /tmp/git/ && make prefix=/usr/local/git install
 #RUN yum install centos-release-scl-rh -y
 #RUN yum install rh-git${GIT_MAJOR_VERSION}-${GIT_VERSION} -y
 
+# install Helm
+
+RUN wget https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -O helm.tar.gz --no-check-certificate
+RUN tar -zxvf helm.tar.gz
+RUN mv linux-amd64/helm /usr/local/bin/helm
+RUN rm -rf linux-amd64 helm.tar.gz
+
+
 # Docker install
 
 RUN yum remove docker \
@@ -55,15 +63,6 @@ RUN yum install -y yum-utils device-mapper-persistent-data lvm2 -y
 RUN yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo -y
 RUN yum install docker-ce-${DOCKER_VERSION} docker-ce-cli containerd.io -y
 RUN usermod -aG docker agent-user
-
-# install Helm
-
-RUN wget https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -O helm.tar.gz --no-check-certificate
-RUN tar -zxvf helm.tar.gz
-RUN mv linux-amd64/helm /usr/local/bin/helm
-RUN rm -rf linux-amd64 helm.tar.gz
-
-
 
 
 # install kubectl
