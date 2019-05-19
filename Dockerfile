@@ -117,6 +117,7 @@ RUN yum remove git -y
 
 RUN yum autoremove -y
 RUN yum install openssh-clients -y
+RUN yum install zip -y
 RUN yum clean all
 RUN rm -rf /tmp/*
 RUN rm -rf /var/cache/yum
